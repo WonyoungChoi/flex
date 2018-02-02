@@ -1,0 +1,21 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup>
+    <TizenNativeLibrary Include="$(MSBuildThisFileDirectory)\..\..\native\tizen\x86\libflex.so">
+      <PackagePath>lib\x86\</PackagePath>
+    </TizenNativeLibrary>
+    <TizenNativeLibrary Include="$(MSBuildThisFileDirectory)\..\..\native\tizen\armv7l\libflex.so">
+      <PackagePath>lib\arm\</PackagePath>
+    </TizenNativeLibrary>
+  </ItemGroup>
+
+  <Target Name="_AddXamarinFlexNativeLibraryToTPK" BeforeTargets="TizenComputeTpkPackageFiles">
+    <ItemGroup>
+      <TizenTpkFiles Include="@(TizenNativeLibrary)">
+        <TizenTpkSubDir>%(TizenNativeLibrary.PackagePath)</TizenTpkSubDir>
+        <TizenTpkFileName>%(Filename)%(Extension)</TizenTpkFileName>
+      </TizenTpkFiles>
+    </ItemGroup>
+  </Target>
+
+ </Project>

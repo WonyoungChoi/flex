@@ -21,6 +21,14 @@ endif
 ANDROID_CC = $(ANDROID_NDK)/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang
 ANDROID_BIN_DIR = $(ANDROID_NDK)/toolchains/x86-4.9/prebuilt/darwin-x86_64/i686-linux-android/bin
 
+
+ifndef TIZEN_STUDIO_PATH
+    $(error The TIZEN_STUDIO_PATH environment variable is not defined)
+endif
+
+TIZEN_CC = $(TIZEN_STUDIO_PATH)/tools/llvm-4.0.0/bin/clang
+
+
 MACOS_BUILD_DIR = $(BUILD_DIR)/macos
 MACOS_FLEX_O = $(MACOS_BUILD_DIR)/flex.o
 MACOS_DYLIB = $(MACOS_BUILD_DIR)/lib$(BASE_NAME).dylib
@@ -78,10 +86,27 @@ ANDROID_ARM64_DYLIB = $(ANDROID_ARM64_DIR)/lib$(BASE_NAME).so
 ANDROID_ARM64_SLIB = $(ANDROID_ARM64_DIR)/lib$(BASE_NAME).a
 ANDROID_ARM64_CFLAGS = $(subst -msoft-float,,$(ANDROID_CFLAGS)) --sysroot=$(ANDROID_NDK)/platforms/android-$(ANDROID_API)/arch-arm64 -target aarch64-none-linux-android -gcc-toolchain $(ANDROID_NDK)/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64 -I$(ANDROID_NDK)/platforms/android-$(ANDROID_API)/arch-arm64/usr/include
 
-all: macos ios android
+TIZEN_BUILD_DIR = $(BUILD_DIR)/tizen
+TIZEN_CFLAGS = $(CFLAGS) -fmessage-length=0 -fPIE -Werror-implicit-function-declaration -DTIZEN
+TIZEN_LDFLAGS = $(LDFLAGS) --as-needed  -pie
+
+TIZEN_X86_DIR = $(TIZEN_BUILD_DIR)/x86
+TIZEN_X86_FLEX_O = $(TIZEN_X86_DIR)/flex.o
+TIZEN_X86_DYLIB = $(TIZEN_X86_DIR)/lib$(BASE_NAME).so
+TIZEN_X86_CFLAGS = $(TIZEN_CFLAGS) --sysroot=$(TIZEN_STUDIO_PATH)/platforms/tizen-4.0/mobile/rootstraps/mobile-4.0-emulator.core -target i586-tizen-linux-gnueabi -march=i586 -gcc-toolchain $(TIZEN_STUDIO_PATH)/tools/i586-linux-gnueabi-gcc-6.2/ -ccc-gcc-name i586-linux-gnueabi-g++
+
+TIZEN_ARM_DIR = $(TIZEN_BUILD_DIR)/armv7l
+TIZEN_ARM_FLEX_O = $(TIZEN_ARM_DIR)/flex.o
+TIZEN_ARM_DYLIB = $(TIZEN_ARM_DIR)/lib$(BASE_NAME).so
+TIZEN_ARM_CFLAGS = $(TIZEN_CFLAGS) --sysroot=$(TIZEN_STUDIO_PATH)/platforms/tizen-4.0/mobile/rootstraps/mobile-4.0-device.core -target arm-tizen-linux-gnueabi -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -mtune=cortex-a8 -gcc-toolchain $(TIZEN_STUDIO_PATH)/tools/arm-linux-gnueabi-gcc-6.2/ -ccc-gcc-name arm-linux-gnueabi-g++
+
+
+
+all: macos ios android tizen
 macos:  $(MACOS_DYLIB) $(MACOS_SLIB)
 ios: $(IOS_DYLIB) $(IOS_SLIB) $(IOS_FRAMEWORK_ZIP)
 android: $(ANDROID_X86_DYLIB) $(ANDROID_X86_SLIB) $(ANDROID_X86_64_DYLIB) $(ANDROID_X86_64_SLIB) $(ANDROID_ARM_DYLIB) $(ANDROID_ARM_SLIB) $(ANDROID_ARM7_DYLIB) $(ANDROID_ARM7_SLIB) $(ANDROID_ARM64_DYLIB) $(ANDROID_ARM64_SLIB) 
+tizen: $(TIZEN_X86_DYLIB) $(TIZEN_ARM_DYLIB)
 
 $(MACOS_FLEX_O): $(FLEX_FILES)
 	/bin/mkdir -p `/usr/bin/dirname $(MACOS_FLEX_O)`
@@ -192,6 +217,20 @@ $(ANDROID_ARM64_SLIB): $(ANDROID_ARM64_FLEX_O)
 	/bin/rm -f $(ANDROID_ARM64_SLIB)
 	$(ANDROID_BIN_DIR)/ar rcu $(ANDROID_ARM64_SLIB) $(ANDROID_ARM64_FLEX_O)
 	$(ANDROID_BIN_DIR)/ranlib $(ANDROID_ARM64_SLIB)
+
+$(TIZEN_X86_FLEX_O): $(FLEX_FILES)
+	/bin/mkdir -p `/usr/bin/dirname $(TIZEN_X86_FLEX_O)`
+	$(TIZEN_CC) $(TIZEN_X86_CFLAGS) -c $(FLEX_SRC) -o $(TIZEN_X86_FLEX_O)
+
+$(TIZEN_X86_DYLIB): $(TIZEN_X86_FLEX_O)
+	$(TIZEN_CC) $(TIZEN_X86_CFLAGS) -Xlinker $(TIZEN_LDFLAGS) $(TIZEN_X86_FLEX_O) -shared -Wl,-soname,`/usr/bin/basename $(TIZEN_X86_DYLIB)` -o $(TIZEN_X86_DYLIB)
+
+$(TIZEN_ARM_FLEX_O): $(FLEX_FILES)
+	/bin/mkdir -p `/usr/bin/dirname $(TIZEN_ARM_FLEX_O)`
+	$(TIZEN_CC) $(TIZEN_ARM_CFLAGS) -c $(FLEX_SRC) -o $(TIZEN_ARM_FLEX_O)
+
+$(TIZEN_ARM_DYLIB): $(TIZEN_ARM_FLEX_O)
+	$(TIZEN_CC) $(TIZEN_ARM_CFLAGS) -Xlinker $(TIZEN_LDFLAGS) $(TIZEN_ARM_FLEX_O) -shared -Wl,-soname,`/usr/bin/basename $(TIZEN_ARM_DYLIB)` -o $(TIZEN_ARM_DYLIB)
 
 clean:
 	/bin/rm -rf $(BUILD_DIR)

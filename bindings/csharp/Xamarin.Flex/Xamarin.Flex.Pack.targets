@@ -12,7 +12,7 @@
     <GitInfoReportImportance Condition="'$(Configuration)' == 'Debug'">high</GitInfoReportImportance>
   </PropertyGroup>
   <PropertyGroup>
-    <MSBuildNDKPathVar>~/Library/Developer/Xamarin/android-ndk/android-ndk-r13b</MSBuildNDKPathVar>
+    <ANDROID_NDK Condition="'$(ANDROID_NDK)' == ''">~/Library/Developer/Xamarin/android-ndk/android-ndk-r13b</ANDROID_NDK>
   </PropertyGroup>
 
   <!-- Workaround for 'Nugetizer packs reference assemblies into NuGet package' issue -->
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <Target Name="BuildNativeLibrary">
-    <Exec WorkingDirectory="$(ProjectDir)../../../" Command="ANDROID_NDK=$(MSBuildNDKPathVar) make"  Condition=" '$(OS)' != 'Windows_NT' " />
+    <Exec WorkingDirectory="$(ProjectDir)../../../" Command="ANDROID_NDK=$(ANDROID_NDK) make"  Condition=" '$(OS)' != 'Windows_NT' " />
   </Target>
 
   <Target Name="AddNativeFiles" DependsOnTargets="BuildNativeLibrary" BeforeTargets="CoreCompile" >
@@ -88,9 +88,22 @@
       <PackageFile Include="..\..\..\build\windows\x64\Debug\flex.dll">
         <PackagePath>runtimes/win10-x64/native/flex.dll</PackagePath>
       </PackageFile>
-
       <PackageFile Include="..\..\..\build\windows\Win32\Debug\flex.dll">
         <PackagePath>runtimes/win10-x86/native/flex.dll</PackagePath>
+      </PackageFile>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageFile Include="..\nuget\Tizen\Xamarin.Flex.targets">
+        <Link>Tizen\Xamarin.Flex.targets</Link>
+        <PackagePath>build/tizen40/Xamarin.Flex.targets</PackagePath>
+      </PackageFile>
+      <PackageFile Include="..\..\..\build\tizen\armv7l\libflex.so">
+        <Link>Tizen\armv7l\libflex.so</Link>
+        <PackagePath>native/tizen/armv7l/libflex.so</PackagePath>
+      </PackageFile>
+      <PackageFile Include="..\..\..\build\tizen\x86\libflex.so">
+        <Link>Tizen\x86\libflex.so</Link>
+        <PackagePath>native/tizen/x86/libflex.so</PackagePath>
       </PackageFile>
     </ItemGroup>
   </Target>

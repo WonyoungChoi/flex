@@ -18,10 +18,20 @@ On a Mac you can also generate static and dynamic libraries for iOS, Android and
 $ make macos
 $ make ios
 $ make android
+$ make tizen
 $ make             # builds everything
 ```
 
-Make sure to have the `ANDROID_NDK` environment variable set to the path where the Android NDK is located in your system. You can also tweak build variables by editing the `Makefile` file.
+Make sure to have the `ANDROID_NDK` and the `TIZEN_STUDIO_PATH` environment variables set to the path where the Android NDK and the Tizen Studio are located in your system. You can also tweak build variables by editing the `Makefile` file.
+
+If the Tizen Studio is not installed on your system, you should install as follows:
+```
+$ wget http://download.tizen.org/sdk/Installer/tizen-studio_2.2/web-cli_Tizen_Studio_2.2_macos-64.bin
+$ chmod +x web-cli_Tizen_Studio_2.2_macos-64.bin
+$ ./web-cli_Tizen_Studio_2.2_macos-64.bin
+$ ~/tizen-studio/package-manager/package-manager-cli.bin install MOBILE-4.0-NativeAppDevelopment-CLI
+$ export TIZEN_STUDIO_PATH=~/tizen-studio
+```
 
 On a Windows machine you can generate dynamic libraires (DLL) for x86, x64, ARM and ARM64 by opening the Visual Studio project file or running `msbuild` from the command line.
 
